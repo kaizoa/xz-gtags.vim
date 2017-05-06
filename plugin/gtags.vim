@@ -1,10 +1,9 @@
 scriptencoding utf-8
 
-echoerr "hoge"
-
 if exists('g:xz_gtags_loaded')
   finish
 endif
+
 let g:xz_gtags_loaded = 1
 
 if !exists('g:xz_gtags_bin')
@@ -13,7 +12,7 @@ endif
 
 
 if g:xz_gtags_bin != ""
-  source fnamemodify(resolve(g:xz_gtags_bin), ":p:h:h") . "/share/gtags/gtags.vim"
+  :execute "source " . fnamemodify(resolve(g:xz_gtags_bin), ":p:h:h"). "/share/gtags/gtags.vim"
 endif
 
 
