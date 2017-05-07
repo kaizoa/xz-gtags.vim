@@ -69,23 +69,60 @@ function! s:set_objdir()
 endfunction
 
 
-let s:Updater = {}
+let s:Gtags = {}
 
-function s:Updater.echomsg(msg) dict
-  if !self.is_single_update
+function s:Gtags.new(objpath, is_single_update) dict abort
+  return copy(extend(s:Gtags, {
+        \'id': -1,
+        \'objpath': a:objpath,
+        \'argv': [],
+        \'errors': [],
+        \'is_single_update': a:is_single_update,
+        \'is_silent': 0
+        \}))
+endfunction
+
+function s:Gtags.run() dict abort
+
+  if s:is_objpath(self.objpath)
+    let self.argv = ['global', '-q', '-u']
+    if self.is_single_update
+      call add(self.argv, "--single-update=\"" . expand("%") . "\"")
+      let self.is_silent = 1
+    endif
+  else
+    let self.argv = ['gtags', '-O']
+  endif
+
+  if match(system('ps'), 'gtags.*-v') != -1
+    call self.echomsg("[xz-gtags] Already started")
+    return
+  endif
+
+  call s:set_objdir()
+  if self.is_single_update
+    silent! execute join(self.argv, ' ')
+  else
+    let self.id = jobstart(self.argv, self)
+    call self.echomsg("[xz-gtags] Update started")
+  endif
+endfunction
+
+function s:Gtags.echomsg(msg) dict
+  if !self.is_silent
     echohl WarningMsg | echomsg a:msg | echohl None
   endif
 endfunction
 
-function s:Updater.on_stdout(id, data) dict
+function s:Gtags.on_stdout(id, data) dict
   " no-op
 endfunction
 
-function s:Updater.on_stderr(id, data) dict
+function s:Gtags.on_stderr(id, data) dict
   call add(self.errors, join(a:data))
 endfunction
 
-function s:Updater.on_exit(id, data) dict
+function s:Gtags.on_exit(id, data) dict
   if len(self.errors) > 0
     for l:err in self.errors
       if l:err != ''
@@ -95,43 +132,6 @@ function s:Updater.on_exit(id, data) dict
     return
   endif
   call self.echomsg("[xz-gtags] Done")
-endfunction
-
-function s:Updater.run() dict abort
-  if match(system('ps'), 'gtags.*-v') != -1
-    call l:job.echomsg("[xz-gtags] Already started")
-    return
-  endif
-  call s:set_objdir()
-  if self.is_single_update
-    silent! execute join(l:job.argv, ' ')
-  else
-    let l:job.id = jobstart(l:job.argv, l:job)
-    call l:job.echomsg("[xz-gtags] Update started")
-  endif
-endfunction
-
-function s:Updater.new(objpath, is_single_update) dict abort
-
-  let l:job = copy(extend(s:Updater, {
-        \'id': -1,
-        \'objpath': a:objpath,
-        \'argv': [],
-        \'errors': [],
-        \'is_single_update': 0
-        \}))
-
-  if s:is_objpath(a:objpath)
-    let l:job.argv = ['global', '-q', '-u']
-    if a:is_single_update
-      call add(l:job.argv, "--single-update=\"" . expand("%") . "\"")
-      let l:job.is_single_update = 1
-      "echomsg join(l:job.argv, ' ')
-    endif
-  else
-    let l:job.argv = ['gtags', '-O']
-  endif
-  return l:job
 endfunction
 
 
@@ -162,7 +162,7 @@ endfunction
 
 
 function! xz_gtags#update()
-  let l:job = s:Updater.new(xz_gtags#objpath(), 0)
+  let l:job = s:Gtags.new(xz_gtags#objpath(), 0)
   call l:job.run()
 endfunction
 
@@ -176,7 +176,7 @@ function! xz_gtags#auto_update()
           \ index(g:xz_gtags#auto_update_ft, expand("%:e")) == -1
       return
     endif
-    let l:job = s:Updater.new(xz_gtags#objpath(), 1)
+    let l:job = s:Gtags.new(xz_gtags#objpath(), 1)
     call l:job.run()
   endif
 endfunction
