@@ -42,7 +42,8 @@ augroup xz_gtags
 augroup END
 
 
-command! GtagsUpdate call xz_gtags#update()
+command! -nargs=* XZGtags call xz_gtags#gtags(<q-args>)
+command! XZGtagsUpdate call xz_gtags#update()
 let &cpo = s:save_cpo
 unlet s:save_cpo
 " vim: ts=2 sw=2 sts=2 et foldenable foldmethod=marker foldcolumn=1
