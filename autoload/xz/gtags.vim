@@ -8,20 +8,20 @@ scriptencoding utf-8
 let s:save_cpo = &cpo
 set cpo&vim
 
-if !exists("g:xz_gtags#auto_update")
-  let g:xz_gtags#auto_update = 0
+if !exists("g:xz#gtags#auto_update")
+  let g:xz#gtags#auto_update = 0
 endif
 
 
-if !exists("g:xz_gtags#auto_update_ft")
-  let g:xz_gtags#auto_update_ft = ['*']
+if !exists("g:xz#gtags#auto_update_ft")
+  let g:xz#gtags#auto_update_ft = ['*']
 endif
 
 
 let s:gpath_name  = 'GPATH'
 let s:grtags_name = 'GRTAGS'
 let s:gtags_name  = 'GTAGS'
-let s:auto_update = g:xz_gtags#auto_update
+let s:auto_update = g:xz#gtags#auto_update
 
 
 function! s:gpath(objpath)
@@ -135,7 +135,7 @@ function s:Gtags.on_exit(id, data) dict
 endfunction
 
 
-function! xz_gtags#objpath()
+function! xz#gtags#objpath()
   let l:path = getcwd()
   if s:is_objpath(l:path)
     return l:path
@@ -147,7 +147,7 @@ function! xz_gtags#objpath()
 endfunction
 
 
-function! xz_gtags#gtags(...)
+function! xz#gtags#gtags(...)
   if a:0 < 1
     return
   endif
@@ -156,27 +156,27 @@ function! xz_gtags#gtags(...)
 endfunction
 
 
-function! xz_gtags#clean()
-  call s:clean(xz_gtags#objpath())
+function! xz#gtags#clean()
+  call s:clean(xz#gtags#objpath())
 endfunction
 
 
-function! xz_gtags#update()
-  let l:job = s:Gtags.new(xz_gtags#objpath(), 0)
+function! xz#gtags#update()
+  let l:job = s:Gtags.new(xz#gtags#objpath(), 0)
   call l:job.run()
 endfunction
 
 
-function! xz_gtags#auto_update()
-  if g:xz_gtags#auto_update
-    if len(g:xz_gtags#auto_update_ft) == 0
+function! xz#gtags#auto_update()
+  if g:xz#gtags#auto_update
+    if len(g:xz#gtags#auto_update_ft) == 0
       return
     endif
-    if index(g:xz_gtags#auto_update_ft, '*') == -1 &&
-          \ index(g:xz_gtags#auto_update_ft, expand("%:e")) == -1
+    if index(g:xz#gtags#auto_update_ft, '*') == -1 &&
+          \ index(g:xz#gtags#auto_update_ft, expand("%:e")) == -1
       return
     endif
-    let l:job = s:Gtags.new(xz_gtags#objpath(), 1)
+    let l:job = s:Gtags.new(xz#gtags#objpath(), 1)
     call l:job.run()
   endif
 endfunction
@@ -185,3 +185,4 @@ endfunction
 let &cpo = s:save_cpo
 unlet s:save_cpo
 " vim: ts=2 sw=2 sts=2 et foldenable foldmethod=marker foldcolumn=1
+
